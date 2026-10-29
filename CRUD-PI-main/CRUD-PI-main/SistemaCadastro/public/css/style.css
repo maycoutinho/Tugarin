@@ -1,0 +1,422 @@
+@font-face {
+    font-family: 'Potta One';
+    src: url('../fonts/PottaOne-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    src: url('../fonts/Montserrat-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+html {
+  overflow-y: scroll;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #DCDCDC;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.mobile {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    background: #FFFFFF;
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 85px;
+}
+
+.topo {
+    background: #0381AF;
+    color: #FFFFFF;
+    text-align: center;
+    padding: 22px 18px;
+}
+
+.topo h1 {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.container-form,
+.container-lista,
+.login-container {
+    padding: 22px;
+}
+
+.logo {
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+    margin-top: 120px;
+    margin-bottom: 70px;
+    font-family: 'Potta One', sans-serif;
+    background: linear-gradient(to bottom, #15BFAE 0%, #0381AF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+form {
+    display: block;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000000;
+    margin-bottom: 6px;
+    margin-top: 14px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #D3D3D3;
+    background: #FFFFFF;
+    font-size: 15px;
+    color: #333333;
+    outline: none;
+    margin-bottom: 4px;
+}
+
+input[type="text"] {
+    background: #F5F5F5;
+}
+
+textarea {
+    height: 120px;
+    resize: none;
+    background: #F5F5F5;
+}
+
+.checkboxes {
+    display: block;
+    padding: 5px 0;
+}
+
+.checkboxes label {
+    display: inline-block;
+    font-weight: 500;
+    cursor: pointer;
+    margin-right: 15px;
+    margin-top: 0;
+}
+
+.checkboxes input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #0381AF;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.btn-salvar,
+.btn-cadastro-completo {
+    display: block;
+    width: 60%;
+    max-width: 200px;
+    background: #15BFAE;
+    color: #FFFFFF;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 25px auto 0 auto;
+    text-align: center;
+}
+
+.login-botoes {
+    display: block;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-login,
+.btn-cadastro-user {
+    display: inline-block;
+    width: 47%;
+    text-align: center;
+    text-decoration: none;
+    padding: 14px;
+    border-radius: 10px;
+    color: #FFFFFF;
+    font-weight: bold;
+}
+
+.btn-login {
+    background: #0381AF;
+    border: none;
+    font-size: 15px;
+    cursor: pointer;
+    margin-right: 4%;
+}
+
+.btn-cadastro-user {
+    background: #15BFAE;
+}
+
+.card {
+    display: table;
+    width: 100%;
+    background: #E8F7F7;
+    border: 1.5px solid #15BFAE;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px #D3D3D3;
+}
+
+.card-conteudo {
+    display: table-cell;
+    vertical-align: top;
+    width: 50%;
+}
+
+.card-conteudo h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 8px;
+}
+
+.card-conteudo ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.card-conteudo ul li {
+    font-size: 14px;
+    color: #333333;
+    margin-bottom: 4px;
+    position: relative;
+    padding-left: 12px;
+}
+
+.card-conteudo ul li::before {
+    content: "•";
+    color: #333333;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.botoes-esquerda {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.botoes-esquerda form {
+    display: inline-block;
+}
+
+.card-lateral {
+    display: table-cell;
+    vertical-align: top;
+    width: 50%;
+    text-align: right;
+}
+
+.imagem-card {
+    width: 155px;
+    height: 105px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.btn-editar,
+.btn-excluir {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: bold;
+    color: #FFFFFF;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.btn-editar {
+    background: #0381AF;
+}
+
+.btn-excluir {
+    background: #15BFAE;
+}
+
+.ver-mais {
+    display: block;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000000;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 8px;
+    padding-right: 4px;
+}
+
+.btn-float {
+    position: fixed;
+    bottom: 85px;
+    width: 56px;
+    height: 56px;
+    right: calc(50% - 180px);
+    border-radius: 14px;
+    background: #15BFAE;
+    color: #FFFFFF;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 34px;
+    box-shadow: 0 4px 14px #888888;
+    z-index: 99;
+}
+
+.navbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    height: 65px;
+    background: #0381AF;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    text-decoration: none;
+}
+
+.nav-item img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    transition: transform 0.2s;
+}
+
+.nav-item.perfil img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid #FFFFFF;
+    object-fit: cover;
+}
+
+.nav-item:active img {
+    transform: scale(0.9);
+}
+
+.nav-item.active img {
+    filter: brightness(0) invert(1);
+    transform: scale(1.1);
+}
+
+.container-splash {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 65px);
+    padding: 22px;
+}
+
+.logo-tartaruga-cinza {
+    width: 180px;
+    height: auto;
+    opacity: 0.2;
+    filter: grayscale(100%);
+    margin-bottom: 15px;
+}
+
+.texto-tugarin-cinza {
+    font-family: 'Potta One', sans-serif;
+    font-size: 42px;
+    font-weight: bold;
+    color: #CCCCCC;
+    letter-spacing: 2px;
+}
+
+.sem-registros {
+    height: 70vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #808080;
+    text-align: center;
+    font-size: 22px;
+}
+
+input[type="file"] {
+    background: #FFFFFF;
+    border: 1px solid #D3D3D3;
+    padding: 10px;
+}
+
+input[type="file"]::file-selector-button {
+    background: #0381AF;
+    color: #FFFFFF;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 13px;
+}

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tugarin - Home</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="mobile">
+
+  <div class="container-splash">
+    <img src="/imgs/toruga-cinza.png" class="splash-icone-tartaruga" alt="Ícone Tartaruga">
+    <img src="/imgs/TUGARIN.png" class="splash-texto-tugarin" alt="Texto Tugarin">
+  </div>
+
+  <nav class="navbar">
+    <a href="/home" class="nav-item <%= typeof pagina !== 'undefined' && pagina === 'home' ? 'active' : '' %>">
+      <img src="/imgs/home-05.png" alt="Home">
+    </a>
+    <a href="/alertas" class="nav-item">
+      <img src="/imgs/alert-square.png" alt="Alertas">
+    </a>
+    <a href="/dashboard" class="nav-item <%= typeof pagina !== 'undefined' && pagina === 'dashboard' ? 'active' : '' %>">
+      <img src="/imgs/toruga.png" alt="Tartarugas">
+    </a>
+    <a href="/camera" class="nav-item">
+      <img src="/imgs/camera-01.png" alt="Câmera">
+    </a>
+    <a href="/perfil" class="nav-item perfil">
+      <img src="/imgs/rafael-lange.png" alt="Perfil">
+    </a>
+  </nav>
+
+</div>
+</body>
+</html>

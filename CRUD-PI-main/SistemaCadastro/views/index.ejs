@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tartarugas Registradas</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="mobile">
+<div class="topo">
+  <h1>Tartarugas Registradas</h1>
+</div>
+
+<div class="container-lista">
+
+  <% if(tartarugas.length === 0){ %>
+    <div class="sem-registros">
+      Não há registros de tartarugas
+    </div>
+  <% } %>
+
+  <% tartarugas.forEach(tartaruga => { %>
+    <div class="card">
+      
+      <div class="card-conteudo">
+        <h2><%= tartaruga.identificacao %></h2>
+        <ul>
+          <li><%= tartaruga.especie %></li>
+          <li><%= tartaruga.local %></li>
+          <li><%= tartaruga.situacao %></li>
+        </ul>
+        <div class="botoes-esquerda">
+          <a href="/editar/<%= tartaruga.id %>" class="btn-editar">Editar</a>
+          <form action="/excluir/<%= tartaruga.id %>" method="POST" onsubmit="return confirm('Deseja realmente excluir este registro?')">
+            <button type="submit" class="btn-excluir">Excluir</button>
+          </form>
+        </div>
+      </div>
+      
+      <div class="card-lateral">
+        <% if(tartaruga.imagem){ %>
+          <img src="/uploads/<%= tartaruga.imagem %>" class="imagem-card" alt="Tartaruga">
+        <% } %>
+        <span class="ver-mais">Ver mais</span>
+      </div>
+
+    </div>
+  <% }) %>
+
+</div>
+
+<a href="/cadastro" class="btn-float">+</a>
+
+<nav class="navbar">
+  <a href="/home" class="nav-item <%= typeof pagina !== 'undefined' && pagina === 'home' ? 'active' : '' %>">
+    <img src="/imgs/home-05.png" alt="Home">
+  </a>
+  <a href="/alertas" class="nav-item">
+    <img src="/imgs/alert-square.png" alt="Alertas">
+  </a>
+  <a href="/dashboard" class="nav-item <%= typeof pagina !== 'undefined' && pagina === 'dashboard' ? 'active' : '' %>">
+    <img src="/imgs/toruga.png" alt="Tartarugas">
+  </a>
+  <a href="/camera" class="nav-item">
+    <img src="/imgs/camera-01.png" alt="Câmera">
+  </a>
+  <a href="/perfil" class="nav-item perfil">
+    <img src="/imgs/rafael-lange.png" alt="Perfil">
+  </a>
+</nav>
+
+</div>
+</body>
+</html>

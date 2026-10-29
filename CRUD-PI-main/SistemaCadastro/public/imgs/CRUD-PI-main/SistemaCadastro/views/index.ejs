@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tartarugas Registradas</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="mobile">
+<div class="topo">
+  <h1>Tartarugas Registradas</h1>
+</div>
+
+<div class="container-lista">
+
+  <% if(tartarugas.length === 0){ %>
+
+    <div class="sem-registros">
+      Não há registros de tartarugas
+    </div>
+
+  <% } %>
+
+
+  <% tartarugas.forEach(tartaruga => { %>
+
+    <div class="card">
+
+      <% if(tartaruga.imagem){ %>
+        <img
+          src="/uploads/<%= tartaruga.imagem %>"
+          class="imagem-card"
+        >
+      <% } %>
+
+      <h2><%= tartaruga.identificacao %></h2>
+
+      <p><strong>Espécie:</strong> <%= tartaruga.especie %></p>
+      <p><strong>Local:</strong> <%= tartaruga.local %></p>
+      <p><strong>Situação:</strong> <%= tartaruga.situacao %></p>
+      <p><strong>Observações:</strong> <%= tartaruga.observacoes %></p>
+
+      <form 
+  action="/excluir/<%= tartaruga.id %>" 
+  method="POST"
+  onsubmit="return confirm('Deseja realmente excluir este registro?')"
+      >
+  <button class="btn-excluir">
+    Excluir
+  </button>
+  <a href="/editar/<%= tartaruga.id %>" class="btn-editar">
+  Editar
+  </a>
+</form>
+
+    </div>
+
+  <% }) %>
+
+</div>
+
+<a href="/cadastro" class="btn-float">+</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="mobile">
+<div class="topo">
+  <h1>Registrar Tartaruga</h1>
+</div>
+
+<div class="container-form">
+
+<form action="/atualizar/<%= tartaruga.id %>" method="POST">
+
+  <label>Identificação</label>
+  <input type="text" name="identificacao" value="<%= tartaruga.identificacao %>" required>
+
+  <br>
+  <br>
+
+  <label>Espécie</label>
+  <select name="especie" required>
+    <option value="">Selecione</option>
+    <option <%= tartaruga.especie === 'Tartaruga-Verde' ? 'selected' : '' %>>Tartaruga-Verde</option>
+    <option <%= tartaruga.especie === 'Tartaruga-de-Couro' ? 'selected' : '' %>>Tartaruga-de-Couro</option>
+    <option <%= tartaruga.especie === 'Tartaruga-Cabeçuda' ? 'selected' : '' %>>Tartaruga-Cabeçuda</option>
+    <option <%= tartaruga.especie === 'Tartaruga-de-Pente' ? 'selected' : '' %>>Tartaruga-de-Pente</option>
+    <option <%= tartaruga.especie === 'Tartaruga-Oliva' ? 'selected' : '' %>>Tartaruga-Oliva</option>
+  </select>
+
+  <br>
+  <br>
+
+  <label>Local encontrada</label>
+  <select name="local" required>
+    <option value="">Selecione</option>
+    <option <%= tartaruga.local === 'Praia Norte' ? 'selected' : '' %>>Praia Norte</option>
+    <option <%= tartaruga.local === 'Praia do Sul' ? 'selected' : '' %>>Praia do Sul</option>
+    <option <%= tartaruga.local === 'Praia do Leste' ? 'selected' : '' %>>Praia do Leste</option>
+    <option <%= tartaruga.local === 'Praia do Oeste' ? 'selected' : '' %>>Praia do Oeste</option>
+  </select>
+
+  <br>
+  <br>
+
+  <label>Situação</label>
+
+  <div class="checkboxes">
+
+    <label>
+      <input type="radio" name="situacao" value="Saudável" <%= tartaruga.situacao === 'Saudável' ? 'checked' : '' %>>
+      Saudável
+    </label>
+
+    <label>
+      <input type="radio" name="situacao" value="Ferida" <%= tartaruga.situacao === 'Ferida' ? 'checked' : '' %>>
+      Ferida
+    </label>
+
+    <label>
+      <input type="radio" name="situacao" value="Encalhada" <%= tartaruga.situacao === 'Encalhada' ? 'checked' : '' %>>
+      Encalhada
+    </label>
+
+  </div>
+
+<br>
+<br>
+
+  <label>Observações</label>
+  <textarea name="observacoes"><%= tartaruga.observacoes %></textarea>
+
+  <br>
+  <br>
+
+  <label>Imagem</label>
+  <input type="file" name="imagem">
+
+  <br>
+  <br>
+
+  <button type="submit" class="btn-salvar">
+    Salvar
+  </button>
+
+</form>
+
+</div>
+</div>
+</body>
+</html>

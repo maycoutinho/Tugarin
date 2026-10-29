@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#2777BF">
+  <title>Tugarin - Câmera ao vivo</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .camera-page { padding: 20px 18px 105px; color: #20252b; }
+    .camera-header { margin-bottom: 18px; }
+    .camera-header h1 { color: #2777BF; font-size: 23px; margin-bottom: 6px; }
+    .camera-header p { color: #5f6872; font-size: 13px; line-height: 1.5; }
+    .camera-frame { position: relative; width: 100%; aspect-ratio: 3 / 4; background: #101820; border-radius: 16px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .camera-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .camera-frame canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+    .camera-placeholder { padding: 24px; text-align: center; color: #fff; line-height: 1.6; font-size: 14px; }
+    .live-pill { position: absolute; top: 12px; left: 12px; z-index: 2; border-radius: 99px; background: #333d; color: white; padding: 7px 10px; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+    .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff5555; margin-right: 6px; }
+    .count-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; margin-top: 14px; border: 1px solid #e1e7ed; border-radius: 14px; background: #f7f9fb; }
+    .count-card .label { color: #586471; font-size: 13px; }
+    .count-card strong { display: block; font-size: 30px; color: #2777BF; margin-top: 3px; }
+    .count-status { font-size: 11px; line-height: 1.4; color: #7a5b13; background: #fff4d4; border-radius: 9px; padding: 8px 10px; max-width: 125px; }
+    .camera-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .camera-btn { border: 0; border-radius: 11px; padding: 13px 10px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .camera-btn.primary { background: #2777BF; color: white; }
+    .camera-btn.secondary { background: #e8eef4; color: #23435f; }
+    .camera-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .camera-message { min-height: 38px; margin-top: 12px; color: #596571; font-size: 12px; line-height: 1.5; }
+    .camera-note { font-size: 11px; color: #68727c; line-height: 1.5; margin-top: 8px; }
+    .camera-page .navbar { position: fixed; bottom: 0; }
+    @media (min-width: 500px) { .camera-page { max-width: 430px; margin: auto; } }
+  </style>
+</head>
+<body>
+<div class="mobile">
+  <main class="camera-page">
+
+<header class="camera-header">
+  <h1>Monitoramento</h1>
+
+  <p>
+  <strong>
+  <%= typeof nomeCamera !== 'undefined'
+    ? nomeCamera
+    : 'Baía dos Golfinhos' %>
+</strong>
+  </p>
+<p>
+  <span class="camera-code">
+    <%= typeof codigoCamera !== 'undefined'
+      ? codigoCamera
+      : 'CAM_05' %>
+  </span>
+  · Câmera de demonstração
+</p>
+
+  <p>
+    Utilize a câmera do celular para testar a detecção
+    de tartarugas em tempo real.
+  </p>
+</header>
+
+
+    <section class="camera-frame" aria-label="Pré-visualização da câmera">
+      <div class="live-pill" id="livePill" hidden><span class="live-dot"></span>AO VIVO</div>
+      <video id="cameraVideo" autoplay playsinline muted hidden></video>
+      <canvas id="detectionCanvas" hidden></canvas>
+      <div class="camera-placeholder" id="cameraPlaceholder">
+        <div style="font-size:42px;margin-bottom:12px">◉</div>
+        <strong>Câmera desligada</strong><br>
+        Toque em “Iniciar câmera” para permitir o acesso à câmera traseira.
+      </div>
+    </section>
+
+    <section class="count-card" aria-live="polite">
+      <div>
+        <span class="label">Miniaturas detectadas</span>
+        <strong id="countValue">—</strong>
+      </div>
+      <span class="count-status" id="countStatus">Aguardando detector YOLO</span>
+    </section>
+
+    <div class="camera-actions">
+      <button class="camera-btn primary" id="startCamera" type="button">Iniciar câmera</button>
+      <button class="camera-btn secondary" id="stopCamera" type="button" disabled>Encerrar câmera</button>
+    </div>
+    <p class="camera-message" id="cameraMessage" role="status">A câmera só será ativada quando você tocar no botão.</p>
+    <p class="camera-note">O reconhecimento usa um serviço Python com YOLO. Para detectar as miniaturas, é necessário treinar o modelo com fotos anotadas e colocar os pesos treinados na pasta indicada no README.</p>
+  </main>
+
+  <nav class="navbar">
+    <a href="/home" class="nav-item"><img src="/imgs/home-05.png" alt="Início"></a>
+    <a href="/alertas" class="nav-item"><img src="/imgs/alert-square.png" alt="Alertas"></a>
+    <a href="/dashboard" class="nav-item"><img src="/imgs/toruga.png" alt="Tartarugas"></a>
+    <a href="/camera" class="nav-item active" aria-label="Câmera"><img src="/imgs/camera-01.png" alt="Câmera"></a>
+    <a href="/perfil" class="nav-item perfil"><img src="/imgs/rafael-lange.png" alt="Perfil"></a>
+  </nav>
+</div>
+<script>
+  const video = document.getElementById('cameraVideo');
+  const placeholder = document.getElementById('cameraPlaceholder');
+  const startButton = document.getElementById('startCamera');
+  const stopButton = document.getElementById('stopCamera');
+  const message = document.getElementById('cameraMessage');
+  const livePill = document.getElementById('livePill');
+  const canvas = document.getElementById('detectionCanvas');
+  const ctx = canvas.getContext('2d');
+  const countValue = document.getElementById('countValue');
+  const countStatus = document.getElementById('countStatus');
+  let cameraStream = null;
+  let detectionTimer = null;
+  let detectionBusy = false;
+
+  function clearDetections() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    countValue.textContent = '—';
+  }
+
+  async function detectFrame() {
+    if (!cameraStream || video.readyState < 2 || detectionBusy) return;
+    detectionBusy = true;
+    try {
+      const temp = document.createElement('canvas');
+      const maxWidth = 640;
+      const scale = Math.min(1, maxWidth / video.videoWidth);
+      temp.width = Math.round(video.videoWidth * scale);
+      temp.height = Math.round(video.videoHeight * scale);
+      temp.getContext('2d').drawImage(video, 0, 0, temp.width, temp.height);
+      const response = await fetch('http://127.0.0.1:8000/detect', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: temp.toDataURL('image/jpeg', 0.75) })
+      });
+      if (!response.ok) throw new Error('Detector indisponível');
+      const result = await response.json();
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const sx = canvas.width / temp.width; const sy = canvas.height / temp.height;
+      (result.detections || []).forEach(d => {
+        const x = d.x1 * sx, y = d.y1 * sy, w = (d.x2 - d.x1) * sx, h = (d.y2 - d.y1) * sy;
+        ctx.strokeStyle = '#12c7b1'; ctx.lineWidth = Math.max(2, canvas.width / 240); ctx.strokeRect(x, y, w, h);
+        const label = `${d.label} ${(d.confidence * 100).toFixed(0)}%`;
+        ctx.font = `bold ${Math.max(13, canvas.width / 32)}px Arial`;
+        const tw = ctx.measureText(label).width; ctx.fillStyle = '#12c7b1'; ctx.fillRect(x, Math.max(0, y - 26), tw + 12, 25);
+        ctx.fillStyle = '#062e2a'; ctx.fillText(label, x + 6, Math.max(18, y - 8));
+      });
+      countValue.textContent = String((result.detections || []).length);
+      countStatus.textContent = result.model_loaded ? 'YOLO ativo' : 'Modelo não treinado';
+      message.textContent = result.model_loaded ? 'Detecção automática ativa. Confira visualmente os resultados.' : 'Serviço conectado, mas falta adicionar o modelo YOLO treinado.';
+    } catch (error) {
+      countStatus.textContent = 'Detector desconectado';
+      message.textContent = 'Câmera ativa; serviço YOLO não conectado. Inicie o serviço Python conforme o README.';
+    } finally { detectionBusy = false; }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream = null;
+    }
+    video.pause();
+    video.srcObject = null;
+    video.hidden = true;
+    canvas.hidden = true;
+    if (detectionTimer) { clearInterval(detectionTimer); detectionTimer = null; }
+    clearDetections();
+    countStatus.textContent = 'Aguardando detector YOLO';
+    placeholder.hidden = false;
+    livePill.hidden = true;
+    startButton.disabled = false;
+    stopButton.disabled = true;
+    message.textContent = 'Câmera encerrada. Você pode iniciar novamente quando quiser.';
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message.textContent = 'Este navegador não liberou acesso à câmera. Abra o Tugarin em HTTPS no Safari ou teste em localhost no computador.';
+      return;
+    }
+    startButton.disabled = true;
+    message.textContent = 'Solicitando permissão para acessar a câmera…';
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      });
+      video.srcObject = cameraStream;
+      video.hidden = false;
+      canvas.hidden = false;
+      placeholder.hidden = true;
+      livePill.hidden = false;
+      stopButton.disabled = false;
+      message.textContent = 'Câmera ativa. Conectando ao detector YOLO…';
+      await video.play();
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      await detectFrame();
+      detectionTimer = setInterval(detectFrame, 700);
+    } catch (error) {
+      startButton.disabled = false;
+      let explanation = 'Não foi possível iniciar a câmera.';
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        explanation = 'Permissão negada. Permita o acesso à câmera nas configurações do navegador e tente novamente.';
+      } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+        explanation = 'Nenhuma câmera compatível foi encontrada neste dispositivo.';
+      } else if (error.name === 'NotReadableError') {
+        explanation = 'A câmera pode estar sendo usada por outro aplicativo. Feche-o e tente novamente.';
+      }
+      message.textContent = explanation;
+    }
+  }
+
+  startButton.addEventListener('click', startCamera);
+  stopButton.addEventListener('click', stopCamera);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && cameraStream) stopCamera();
+  });
+window.addEventListener('pagehide', stopCamera);
+</script>
+</body>
+</html>
