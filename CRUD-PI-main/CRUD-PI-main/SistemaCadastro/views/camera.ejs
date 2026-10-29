@@ -59,6 +59,14 @@
       object-fit: cover;
     }
 
+    .camera-frame canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
     .camera-placeholder {
       padding: 24px;
       text-align: center;
@@ -219,6 +227,7 @@
       </div>
 
       <video id="cameraVideo" autoplay playsinline muted hidden></video>
+      <canvas id="detectionCanvas" hidden></canvas>
 
       <div class="camera-placeholder" id="cameraPlaceholder">
         <div style="font-size:42px; margin-bottom:12px">◉</div>
@@ -282,17 +291,175 @@
   </nav>
 </div>
 
+
 <script>
   const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('detectionCanvas');
+  const ctx = canvas.getContext('2d');
+
   const placeholder = document.getElementById('cameraPlaceholder');
   const startButton = document.getElementById('startCamera');
   const stopButton = document.getElementById('stopCamera');
   const message = document.getElementById('cameraMessage');
   const livePill = document.getElementById('livePill');
+  const countValue = document.getElementById('countValue');
+  const countStatus = document.getElementById('countStatus');
 
   let cameraStream = null;
+  let detectionTimer = null;
+  let detectionBusy = false;
+
+  function extrairPredicoes(resultado) {
+    const possiveis = [
+      resultado?.predictions,
+      resultado?.predictions?.predictions,
+      resultado?.outputs?.[0]?.predictions,
+      resultado?.outputs?.[0]?.predictions?.predictions,
+      resultado?.outputs?.[0]?.result?.predictions,
+      resultado?.results?.[0]?.predictions
+    ];
+
+    return possiveis.find(Array.isArray) ?? null;
+  }
+
+  function desenharPredicoes(predicoes, larguraOriginal, alturaOriginal,
+                             larguraCaptura, alturaCaptura) {
+    canvas.width = larguraOriginal;
+    canvas.height = alturaOriginal;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const sx = larguraOriginal / larguraCaptura;
+    const sy = alturaOriginal / alturaCaptura;
+
+    for (const p of predicoes) {
+      let x, y, w, h;
+
+      if (
+        Number.isFinite(p.x1) && Number.isFinite(p.y1) &&
+        Number.isFinite(p.x2) && Number.isFinite(p.y2)
+      ) {
+        x = p.x1 * sx;
+        y = p.y1 * sy;
+        w = (p.x2 - p.x1) * sx;
+        h = (p.y2 - p.y1) * sy;
+      } else if (
+        Number.isFinite(p.x) && Number.isFinite(p.y) &&
+        Number.isFinite(p.width) && Number.isFinite(p.height)
+      ) {
+        x = (p.x - p.width / 2) * sx;
+        y = (p.y - p.height / 2) * sy;
+        w = p.width * sx;
+        h = p.height * sy;
+      } else {
+        continue;
+      }
+
+      const classe = p.class || p.label || p.class_name || 'Tartaruga';
+      const confianca = Number.isFinite(p.confidence)
+        ? ` ${(p.confidence * 100).toFixed(0)}%`
+        : '';
+
+      ctx.lineWidth = Math.max(2, canvas.width / 240);
+      ctx.strokeStyle = '#12c7b1';
+      ctx.strokeRect(x, y, w, h);
+
+      const texto = `${classe}${confianca}`;
+      ctx.font = `bold ${Math.max(13, canvas.width / 32)}px Arial`;
+
+      const textoLargura = ctx.measureText(texto).width;
+      const etiquetaY = Math.max(0, y - 26);
+
+      ctx.fillStyle = '#12c7b1';
+      ctx.fillRect(x, etiquetaY, textoLargura + 12, 25);
+
+      ctx.fillStyle = '#062e2a';
+      ctx.fillText(texto, x + 6, etiquetaY + 18);
+    }
+  }
+
+  async function detectarQuadro() {
+    if (
+      !cameraStream ||
+      video.readyState < 2 ||
+      detectionBusy ||
+      !video.videoWidth
+    ) return;
+
+    detectionBusy = true;
+
+    try {
+      const larguraOriginal = video.videoWidth;
+      const alturaOriginal = video.videoHeight;
+      const larguraCaptura = Math.min(640, larguraOriginal);
+      const escala = larguraCaptura / larguraOriginal;
+      const alturaCaptura = Math.round(alturaOriginal * escala);
+
+      const captura = document.createElement('canvas');
+      captura.width = larguraCaptura;
+      captura.height = alturaCaptura;
+
+      captura.getContext('2d').drawImage(
+        video, 0, 0, larguraCaptura, alturaCaptura
+      );
+
+      const imagem = captura.toDataURL('image/jpeg', 0.7);
+
+      const resposta = await fetch('/api/detectar-tartarugas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ imagem })
+      });
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          resultado.erro || 'Não foi possível consultar o Roboflow.'
+        );
+      }
+
+      console.log('Resposta do workflow Roboflow:', resultado);
+
+      const predicoes = extrairPredicoes(resultado);
+
+      if (predicoes === null) {
+        countValue.textContent = '—';
+        countStatus.textContent = 'Resposta recebida';
+        message.textContent =
+          'O Roboflow respondeu, mas precisamos conferir o formato das detecções.';
+        return;
+      }
+
+      desenharPredicoes(
+        predicoes,
+        larguraOriginal,
+        alturaOriginal,
+        larguraCaptura,
+        alturaCaptura
+      );
+
+      countValue.textContent = String(predicoes.length);
+      countStatus.textContent = 'Detecção ativa';
+      message.textContent = 'Quadro analisado pelo Roboflow.';
+    } catch (erro) {
+      console.error('Erro na detecção:', erro);
+
+      countStatus.textContent = 'Falha na detecção';
+      message.textContent = erro.message;
+    } finally {
+      detectionBusy = false;
+    }
+  }
 
   function stopCamera() {
+    if (detectionTimer) {
+      clearInterval(detectionTimer);
+      detectionTimer = null;
+    }
+
     if (cameraStream) {
       cameraStream.getTracks().forEach(track => track.stop());
       cameraStream = null;
@@ -301,70 +468,72 @@
     video.pause();
     video.srcObject = null;
     video.hidden = true;
+    canvas.hidden = true;
     placeholder.hidden = false;
     livePill.hidden = true;
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    countValue.textContent = '—';
+    countStatus.textContent = 'Reconhecimento parado';
+
     startButton.disabled = false;
     stopButton.disabled = true;
-
-    message.textContent =
-      'Câmera encerrada. Você pode iniciar novamente quando quiser.';
+    message.textContent = 'Câmera encerrada.';
   }
 
   async function startCamera() {
-    if (!navigator.mediaDevices ||
-        !navigator.mediaDevices.getUserMedia) {
+    if (!navigator.mediaDevices?.getUserMedia) {
       message.textContent =
-        'O navegador não liberou a câmera. Use localhost no computador ou HTTPS no celular.';
+        'O navegador não disponibilizou acesso à câmera.';
       return;
     }
 
     startButton.disabled = true;
-    message.textContent = 'Solicitando permissão para acessar a câmera…';
+    message.textContent = 'Solicitando acesso à câmera...';
 
     try {
       cameraStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 640 },
+          height: { ideal: 480 }
         }
       });
 
       video.srcObject = cameraStream;
       video.hidden = false;
+      canvas.hidden = false;
       placeholder.hidden = true;
       livePill.hidden = false;
       stopButton.disabled = false;
 
       await video.play();
 
-      message.textContent =
-        'Câmera ativa. Você já pode demonstrar o vídeo ao vivo.';
-    } catch (error) {
+      message.textContent = 'Câmera ativa. Conectando ao Roboflow...';
+      countStatus.textContent = 'Conectando ao detector';
+
+      await detectarQuadro();
+
+      detectionTimer = setInterval(detectarQuadro, 2000);
+    } catch (erro) {
+      console.error('Erro ao iniciar a câmera:', erro);
+
       if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
         cameraStream = null;
       }
 
+      video.srcObject = null;
+      video.hidden = true;
+      canvas.hidden = true;
+      placeholder.hidden = false;
+      livePill.hidden = true;
+
       startButton.disabled = false;
       stopButton.disabled = true;
-
-      let explanation = 'Não foi possível iniciar a câmera.';
-
-      if (error.name === 'NotAllowedError' ||
-          error.name === 'PermissionDeniedError') {
-        explanation =
-          'Permissão negada. Autorize o uso da câmera nas configurações do navegador.';
-      } else if (error.name === 'NotFoundError') {
-        explanation = 'Nenhuma câmera foi encontrada neste dispositivo.';
-      } else if (error.name === 'NotReadableError') {
-        explanation =
-          'A câmera pode estar sendo usada por outro aplicativo. Feche-o e tente novamente.';
-      }
-
-      message.textContent = explanation;
+      message.textContent =
+        'Não foi possível iniciar a câmera. Confira a permissão do navegador.';
     }
   }
 
@@ -379,5 +548,6 @@
 
   window.addEventListener('pagehide', stopCamera);
 </script>
+
 </body>
 </html>

@@ -58,8 +58,9 @@ const upload = multer({ storage })
 // INTEGRAÇÃO COM O ROBOFLOW
 // --------------------------------------------------
 
+// Integração com o modelo Tugarin v5 no Roboflow
 const ROBOFLOW_WORKFLOW_URL =
-  'https://serverless.roboflow.com/tugarin/workflows/tugarin-tartarugas-vtugarin-tartarugas-2-rfdetr-small-t1-logic'
+  'https://serverless.roboflow.com/tugarin/workflows/tugarin-tartarugas-vtugarin-tartarugas-5-rfdetr-small-t1-logic'
 
 app.post(
   '/api/detectar-tartarugas',
@@ -68,61 +69,77 @@ app.post(
     try {
       const { imagem } = req.body
 
+      if (!process.env.ROBOFLOW_API_KEY) {
+        return res.status(500).json({
+          erro: 'A variável ROBOFLOW_API_KEY não está configurada no servidor.'
+        })
+      }
+
       if (
         typeof imagem !== 'string' ||
-        !imagem.startsWith('data:image/')
+        !imagem.startsWith('data:image/') ||
+        !imagem.includes(',')
       ) {
         return res.status(400).json({
-          erro: 'Imagem inválida ou não enviada.'
+          erro: 'Imagem inválida. Envie uma imagem capturada pela câmera.'
         })
       }
 
-      const apiKey = process.env.ROBOFLOW_API_KEY
+      // Converte a imagem Data URL em Base64
+      const base64Imagem = imagem.substring(imagem.indexOf(',') + 1)
 
-      if (!apiKey) {
-        return res.status(500).json({
-          erro: 'Configure a variável ROBOFLOW_API_KEY no terminal.'
-        })
-      }
-
-      const imagemBase64 = imagem.replace(
-        /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
-        ''
-      )
-
-      const resposta = await fetch(ROBOFLOW_WORKFLOW_URL, {
+      const response = await fetch(ROBOFLOW_WORKFLOW_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${process.env.ROBOFLOW_API_KEY}`
         },
         body: JSON.stringify({
           inputs: {
             image: {
               type: 'base64',
-              value: imagemBase64
+              value: base64Imagem
             }
           }
         })
       })
 
-      const resultado = await resposta.json()
+      const resultado = await response.json()
 
-      if (!resposta.ok) {
-        console.error('Erro do Roboflow:', resultado)
+      if (!response.ok) {
+        console.error('Erro retornado pelo Roboflow:', resultado)
 
         return res.status(502).json({
-          erro: 'O Roboflow recusou ou não conseguiu processar a imagem.',
+          erro: 'O Roboflow não conseguiu processar a imagem.',
           detalhes: resultado
         })
       }
 
-      return res.json(resultado)
+      // Aceita os formatos de saída mais comuns dos workflows
+      let predictions = []
+
+      if (Array.isArray(resultado.predictions)) {
+        predictions = resultado.predictions
+      } else if (
+        Array.isArray(resultado.outputs?.[0]?.predictions?.predictions)
+      ) {
+        predictions = resultado.outputs[0].predictions.predictions
+      } else if (
+        Array.isArray(resultado.outputs?.[0]?.predictions)
+      ) {
+        predictions = resultado.outputs[0].predictions
+      }
+
+      return res.json({
+        predictions,
+        count: predictions.length,
+        resultadoOriginal: resultado
+      })
     } catch (erro) {
-      console.error('Erro na integração com o Roboflow:', erro)
+      console.error('Erro na detecção de tartarugas:', erro)
 
       return res.status(500).json({
-        erro: 'Falha ao enviar a imagem para o detector.'
+        erro: 'Falha ao conectar com o serviço de detecção.'
       })
     }
   }
